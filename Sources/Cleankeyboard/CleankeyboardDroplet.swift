@@ -236,7 +236,7 @@ private struct CleankeyboardWidget: View {
                     
                     Spacer(minLength: 0)
                 }
-                .padding(DroppySpacing.mdl)
+                .padding(context.contentInsets)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .clipped()

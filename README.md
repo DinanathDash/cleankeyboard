@@ -14,18 +14,26 @@ droppykit submit     # open the submission form, filled in from this checkout
 
 ## With a coding agent
 
-Open this folder in Claude Code, Codex or Cursor. `AGENTS.md` is the brief
-they read first, and `.mcp.json` / `.cursor/mcp.json` connect the DroppyKit
-MCP server, which gives them the build, the checks, pictures of every surface
-and an install into Droppy Playground as tools. Codex registers the server
-once per Mac: `codex mcp add droppykit -- path/to/droppykit/Scripts/droppykit mcp`.
-Run `droppykit agent` again after moving this folder or the SDK checkout.
+Open this folder in Claude Code, Codex or Cursor. `AGENTS.md` is the brief they read first, and `.mcp.json` / `.cursor/mcp.json` connect the DroppyKit MCP server.
 
-## Before submitting
+## The surfaces
 
-- Replace `Cleankeyboard.icon` with real artwork, in Icon Composer.
-- Replace `Assets/Creator.png` with your own square, unrounded mark.
-- Fill in `summary`, `description`, `creator` and `source` in `droplet.json`.
-- Push this repository, then `droppykit submit`: it opens
-  [getdroppy.app/submit-droplet](https://getdroppy.app/submit-droplet) with the
-  repository, the commit and the id filled in.
+| Surface | Protocol |
+| --- | --- |
+| Shelf widget | `ShelfWidgetProviding` |
+| Live activity, compact and expanded | `LiveActivityProviding` |
+| Settings pane | `SettingsPaneProviding` |
+| Menu bar extra | `MenuBarExtraProviding` |
+
+## Repository layout
+
+```
+Sources/Cleankeyboard/          the droplet's code
+Cleankeyboard.icon/             the app icon artwork
+Assets/                         bundled assets (like Creator.png)
+droplet.json                    the manifest
+```
+
+## Licence
+
+Source-available. See [LICENSE](LICENSE).

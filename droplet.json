@@ -7,7 +7,7 @@
   "category": "Productivity",
   "kit": {
     "abi": 1,
-    "minAPI": "1.4.0"
+    "minAPI": "1.6.0"
   },
   "minAppVersion": "15.3.0",
   "capabilities": [
@@ -16,7 +16,8 @@
   "surfaces": [
     "shelf-widget",
     "live-activity",
-    "settings-pane"
+    "settings-pane",
+    "menu-bar-extra"
   ],
   "icon": "Cleankeyboard.icon",
   "creator": {
@@ -27,7 +28,6 @@
   },
   "source": {
     "repository": "https://github.com/DinanathDash/cleankeyboard",
-    "commit": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
     "license": "MIT"
   },
   "keywords": [
