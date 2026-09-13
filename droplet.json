@@ -16,8 +16,7 @@
   "surfaces": [
     "shelf-widget",
     "live-activity",
-    "settings-pane",
-    "menu-bar-extra"
+    "settings-pane"
   ],
   "icon": "Cleankeyboard.icon",
   "creator": {

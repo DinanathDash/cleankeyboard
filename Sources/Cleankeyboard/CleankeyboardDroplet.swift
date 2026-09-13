@@ -315,7 +315,6 @@ extension CleankeyboardDroplet: SettingsPaneProviding {
 private struct CleankeyboardSettingsPane: View {
     @ObservedObject var droplet: CleankeyboardDroplet
     @AppStorage("preventScreenSleep") private var preventScreenSleep = true
-    @AppStorage("showMenuBarExtra") private var showMenuBarExtra = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: DroppySpacing.lg) {
@@ -325,33 +324,8 @@ private struct CleankeyboardSettingsPane: View {
                     subtitle: "Keeps the screen awake while cleaning so you aren't locked out of your Mac.",
                     isOn: $preventScreenSleep
                 )
-                
-                DropletToggleRow(
-                    title: "Show in Menu Bar",
-                    subtitle: "Show an icon in the system menu bar to quickly toggle Clean Keyboard.",
-                    isOn: $showMenuBarExtra
-                )
             }
         }
-        .onChange(of: showMenuBarExtra) {
-            droplet.objectWillChange.send()
-        }
     }
 }
 
-// MARK: - Menu Bar Extra
-
-extension CleankeyboardDroplet: MenuBarExtraProviding {
-    public func makeMenuBarExtra() -> MenuBarExtraDescriptor? {
-        let show = UserDefaults.standard.object(forKey: "showMenuBarExtra") as? Bool ?? false
-        guard show else { return nil }
-        
-        return MenuBarExtraDescriptor(title: "Clean Keyboard", systemImage: "keyboard.macwindow") {
-            AnyView(
-                Button(self.isCleaning ? "Stop Cleaning Keyboard" : "Start Cleaning Keyboard") {
-                    self.toggleCleaning()
-                }
-            )
-        }
-    }
-}
