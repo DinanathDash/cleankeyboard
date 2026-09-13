@@ -146,16 +146,9 @@ public final class CleankeyboardDroplet: NSObject, ObservableObject, Droplet {
         if isCleaning {
             activitySubject.send(
                 LiveActivityState(
-                    priority: 999999,
+                    priority: 200,
                     accessibilityTitle: "Keyboard Locked",
-                    isInteractive: true,
-                    joinsPersistentActivitySet: true,
-                    compactPresentation: CompactLiveActivityPresentationMetadata(
-                        id: "cleankeyboard",
-                        accessibilityLabel: "Keyboard",
-                        accessibilityValue: "Locked",
-                        preferredWidth: 64
-                    )
+                    isInteractive: true
                 )
             )
         } else {
@@ -198,47 +191,47 @@ private struct CleankeyboardWidget: View {
         Button {
             droplet.toggleCleaning()
         } label: {
-            ZStack {
-                if let path = Bundle.module.path(forResource: "Keyboard", ofType: "png"),
-                   let nsImage = NSImage(contentsOfFile: path) {
-                    Image(nsImage: nsImage)
-                        .resizable()
-                        .scaledToFill()
-                        .opacity(0.8)
+            VStack(alignment: .leading, spacing: DroppySpacing.sm) {
+                HStack(spacing: DroppySpacing.xsm) {
+                    Image(systemName: "keyboard")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white)
+                    Text("Clean Keyboard")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white)
+                    Spacer(minLength: 0)
                 }
                 
-                Color.black.opacity(0.2) // extra darkening
-                    
-                VStack(alignment: .leading, spacing: DroppySpacing.sm) {
-                    HStack(spacing: DroppySpacing.xsm) {
-                        Image(systemName: "keyboard.macwindow")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(.white)
-                        Text("Clean Keyboard")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(.white)
-                        Spacer(minLength: 0)
-                    }
-                    
+                Spacer(minLength: 0)
+                
+                HStack {
                     Spacer(minLength: 0)
-                    
-                    HStack {
-                        Spacer()
-                        Text(droplet.isCleaning ? "Click to Stop" : "Click to Start")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(.white)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 16)
-                            .background(droplet.isCleaning ? Color.red : Color.blue)
-                            .cornerRadius(8)
-                        Spacer()
-                    }
-                    
+                    Text(droplet.isCleaning ? "Click to Stop" : "Click to Start")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .background(droplet.isCleaning ? Color.red : Color.blue)
+                        .cornerRadius(8)
                     Spacer(minLength: 0)
                 }
-                .padding(context.contentInsets)
+                
+                Spacer(minLength: 0)
             }
+            .padding(DroppySpacing.mdl)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background {
+                ZStack {
+                    if let path = Bundle.module.path(forResource: "Keyboard", ofType: "png"),
+                       let nsImage = NSImage(contentsOfFile: path) {
+                        Image(nsImage: nsImage)
+                            .resizable()
+                            .scaledToFill()
+                            .opacity(0.8)
+                    }
+                    Color.black.opacity(0.2)
+                }
+            }
             .clipped()
         }
         .buttonStyle(.plain)
@@ -305,9 +298,6 @@ extension CleankeyboardDroplet: LiveActivityProviding {
                             Text("Clean Keyboard")
                                 .font(.system(size: 14, weight: .semibold))
                         }
-                        Text(self.isCleaning ? "Locking..." : "Ready")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.white.opacity(0.8))
                     }
                     .foregroundStyle(.white)
                     
@@ -317,14 +307,12 @@ extension CleankeyboardDroplet: LiveActivityProviding {
                         self.toggleCleaning()
                     } label: {
                         Text(self.isCleaning ? "Stop" : "Start")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(.white)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 20)
-                            .background(self.isCleaning ? Color.red : Color.blue)
-                            .cornerRadius(16)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(self.isCleaning ? Color.red : Color.blue)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(DroppyGlassButtonStyle())
                 }
                 .padding(.horizontal, DroppySpacing.md)
             }
@@ -348,12 +336,14 @@ extension CleankeyboardDroplet: LiveActivityProviding {
 
 extension CleankeyboardDroplet: SettingsPaneProviding {
     public func makeSettingsPane(context: SettingsPaneContext) -> AnyView {
-        AnyView(CleankeyboardSettingsPane())
+        AnyView(CleankeyboardSettingsPane(droplet: self))
     }
 }
 
 private struct CleankeyboardSettingsPane: View {
+    @ObservedObject var droplet: CleankeyboardDroplet
     @AppStorage("preventScreenSleep") private var preventScreenSleep = true
+    @AppStorage("showMenuBarExtra") private var showMenuBarExtra = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: DroppySpacing.lg) {
@@ -363,7 +353,16 @@ private struct CleankeyboardSettingsPane: View {
                     subtitle: "Keeps the screen awake while cleaning so you aren't locked out of your Mac.",
                     isOn: $preventScreenSleep
                 )
+                
+                DropletToggleRow(
+                    title: "Show in Menu Bar",
+                    subtitle: "Show an icon in the system menu bar to quickly toggle Clean Keyboard.",
+                    isOn: $showMenuBarExtra
+                )
             }
+        }
+        .onChange(of: showMenuBarExtra) {
+            droplet.objectWillChange.send()
         }
     }
 }
@@ -372,7 +371,10 @@ private struct CleankeyboardSettingsPane: View {
 
 extension CleankeyboardDroplet: MenuBarExtraProviding {
     public func makeMenuBarExtra() -> MenuBarExtraDescriptor? {
-        MenuBarExtraDescriptor(title: "Clean Keyboard", systemImage: "keyboard.macwindow") {
+        let show = UserDefaults.standard.object(forKey: "showMenuBarExtra") as? Bool ?? false
+        guard show else { return nil }
+        
+        return MenuBarExtraDescriptor(title: "Clean Keyboard", systemImage: "keyboard.macwindow") {
             AnyView(
                 Button(self.isCleaning ? "Stop Cleaning Keyboard" : "Start Cleaning Keyboard") {
                     self.toggleCleaning()

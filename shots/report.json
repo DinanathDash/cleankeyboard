@@ -4,7 +4,12 @@
     "error" : null
   },
   "activity" : [
-
+    {
+      "at" : "2026-09-13T08:14:41Z",
+      "detail" : "register \"toggle\"",
+      "refused" : false,
+      "service" : "shortcuts"
+    }
   ],
   "artwork" : {
     "creatorAvatar" : "ok",
@@ -12,15 +17,15 @@
   },
   "capabilities" : {
     "declared" : [
-
+      "global-shortcuts"
     ],
     "granted" : [
-
+      "global-shortcuts"
     ]
   },
   "droplet" : {
     "capabilities" : [
-
+      "global-shortcuts"
     ],
     "category" : "Productivity",
     "creator" : "Dinanath Dash",
@@ -28,24 +33,26 @@
     "id" : "cleankeyboard",
     "kit" : {
       "abi" : 1,
-      "minAPI" : "1.4.0"
+      "minAPI" : "1.7.0"
     },
     "minAppVersion" : "15.3.0",
     "name" : "Clean Keyboard",
     "summary" : "Clean your Mac's keyboard safely.",
     "surfaces" : [
       "shelf-widget",
-      "live-activity"
+      "live-activity",
+      "settings-pane",
+      "menu-bar-extra"
     ],
     "typeID" : "cleankeyboard",
-    "version" : "1.0.0"
+    "version" : "1.0.6"
   },
   "expandedSurfaces" : [
 
   ],
   "harness" : {
     "abi" : 1,
-    "apiVersion" : "1.5.0"
+    "apiVersion" : "1.7.0"
   },
   "liveActivity" : {
     "publishing" : false,
@@ -56,14 +63,14 @@
   },
   "log" : [
     {
-      "at" : "2026-09-12T07:30:01Z",
+      "at" : "2026-09-13T08:14:41Z",
       "level" : "info",
       "message" : "Clean Keyboard activated"
     }
   ],
   "manifest" : {
     "loaded" : true,
-    "path" : "\/Users\/dinanathdash\/Documents\/Projects\/droppykit\/cleankeyboard\/droplet.json",
+    "path" : "\/Users\/dinanathdash\/Documents\/Projects\/cleankeyboard\/droplet.json",
     "problem" : null
   },
   "problems" : [
@@ -76,22 +83,22 @@
       "id" : "cleankeyboard",
       "preferredPairedWidth" : 210,
       "preferredSoloWidth" : 420,
-      "systemImage" : "drop.fill",
+      "systemImage" : "keyboard",
       "title" : "Clean Keyboard"
     }
   ],
   "shots" : [
-    "\/Users\/dinanathdash\/Documents\/Projects\/droppykit\/cleankeyboard\/shots\/overview.png",
-    "\/Users\/dinanathdash\/Documents\/Projects\/droppykit\/cleankeyboard\/shots\/shelf-widget.png",
-    "\/Users\/dinanathdash\/Documents\/Projects\/droppykit\/cleankeyboard\/shots\/live-activity.png",
-    "\/Users\/dinanathdash\/Documents\/Projects\/droppykit\/cleankeyboard\/shots\/hud.png",
-    "\/Users\/dinanathdash\/Documents\/Projects\/droppykit\/cleankeyboard\/shots\/expanded-surface.png",
-    "\/Users\/dinanathdash\/Documents\/Projects\/droppykit\/cleankeyboard\/shots\/settings-pane.png",
-    "\/Users\/dinanathdash\/Documents\/Projects\/droppykit\/cleankeyboard\/shots\/lock-screen.png",
-    "\/Users\/dinanathdash\/Documents\/Projects\/droppykit\/cleankeyboard\/shots\/menu-bar.png",
-    "\/Users\/dinanathdash\/Documents\/Projects\/droppykit\/cleankeyboard\/shots\/capabilities.png",
-    "\/Users\/dinanathdash\/Documents\/Projects\/droppykit\/cleankeyboard\/shots\/preferences.png",
-    "\/Users\/dinanathdash\/Documents\/Projects\/droppykit\/cleankeyboard\/shots\/activity.png"
+    "\/Users\/dinanathdash\/Documents\/Projects\/cleankeyboard\/shots\/overview.png",
+    "\/Users\/dinanathdash\/Documents\/Projects\/cleankeyboard\/shots\/shelf-widget.png",
+    "\/Users\/dinanathdash\/Documents\/Projects\/cleankeyboard\/shots\/live-activity.png",
+    "\/Users\/dinanathdash\/Documents\/Projects\/cleankeyboard\/shots\/hud.png",
+    "\/Users\/dinanathdash\/Documents\/Projects\/cleankeyboard\/shots\/expanded-surface.png",
+    "\/Users\/dinanathdash\/Documents\/Projects\/cleankeyboard\/shots\/settings-pane.png",
+    "\/Users\/dinanathdash\/Documents\/Projects\/cleankeyboard\/shots\/lock-screen.png",
+    "\/Users\/dinanathdash\/Documents\/Projects\/cleankeyboard\/shots\/menu-bar.png",
+    "\/Users\/dinanathdash\/Documents\/Projects\/cleankeyboard\/shots\/capabilities.png",
+    "\/Users\/dinanathdash\/Documents\/Projects\/cleankeyboard\/shots\/preferences.png",
+    "\/Users\/dinanathdash\/Documents\/Projects\/cleankeyboard\/shots\/activity.png"
   ],
   "surfaces" : [
     {
@@ -113,10 +120,10 @@
       "verdict" : "not-provided"
     },
     {
-      "declared" : false,
-      "implemented" : false,
+      "declared" : true,
+      "implemented" : true,
       "surface" : "settings-pane",
-      "verdict" : "not-provided"
+      "verdict" : "provided"
     },
     {
       "declared" : false,
@@ -131,10 +138,10 @@
       "verdict" : "not-provided"
     },
     {
-      "declared" : false,
-      "implemented" : false,
+      "declared" : true,
+      "implemented" : true,
       "surface" : "menu-bar-extra",
-      "verdict" : "not-provided"
+      "verdict" : "provided"
     }
   ],
   "verdict" : "ok"
