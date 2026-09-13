@@ -31,6 +31,7 @@ public final class CleankeyboardDroplet: NSObject, ObservableObject, Droplet {
     private let activitySubject = CurrentValueSubject<LiveActivityState?, Never>(nil)
 
     @Published public private(set) var isCleaning: Bool = false
+    @Published private var isShowingUnlockConfirmation: Bool = false
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var assertionID: IOPMAssertionID = 0
@@ -66,6 +67,8 @@ public final class CleankeyboardDroplet: NSObject, ObservableObject, Droplet {
     private func startCleaning() {
         guard !isCleaning else { return }
         
+        isShowingUnlockConfirmation = false
+        
         // Prompt for Accessibility permissions if not already granted
         let options = ["AXTrustedCheckOptionPrompt": true]
         let accessEnabled = AXIsProcessTrustedWithOptions(options as CFDictionary)
@@ -86,9 +89,18 @@ public final class CleankeyboardDroplet: NSObject, ObservableObject, Droplet {
             options: .defaultTap,
             eventsOfInterest: mask,
             callback: { proxy, type, event, refcon in
+                if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                    if let ref = refcon {
+                        let droplet = Unmanaged<CleankeyboardDroplet>.fromOpaque(ref).takeUnretainedValue()
+                        if let tap = droplet.eventTap {
+                            CGEvent.tapEnable(tap: tap, enable: true)
+                        }
+                    }
+                    return Unmanaged.passUnretained(event)
+                }
                 return nil // Drop the event
             },
-            userInfo: nil
+            userInfo: UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
         )
         
         if let tap = eventTap {
@@ -138,16 +150,25 @@ public final class CleankeyboardDroplet: NSObject, ObservableObject, Droplet {
         eventTap = nil
         runLoopSource = nil
         isCleaning = false
+        isShowingUnlockConfirmation = true
         host?.log.info("Stopped cleaning mode, keyboard restored.")
         publishActivity()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            guard let self = self else { return }
+            if !self.isCleaning && self.isShowingUnlockConfirmation {
+                self.isShowingUnlockConfirmation = false
+                self.publishActivity()
+            }
+        }
     }
     
     private func publishActivity() {
-        if isCleaning {
+        if isCleaning || isShowingUnlockConfirmation {
             activitySubject.send(
                 LiveActivityState(
                     priority: 200,
-                    accessibilityTitle: "Keyboard Locked",
+                    accessibilityTitle: isCleaning ? "Keyboard Locked" : "Keyboard Unlocked",
                     isInteractive: false
                 )
             )
@@ -268,24 +289,37 @@ extension CleankeyboardDroplet: LiveActivityProviding {
     public func makeExpanded(context: LiveActivityContext) -> AnyView {
         AnyView(
             HStack(spacing: DroppySpacing.sm) {
-                Image(systemName: "keyboard.macwindow")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
-                
-                Text("Clean Keyboard")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
-                    .lineLimit(1)
-                
-                Spacer(minLength: 0)
-                
-                Button {
-                    self.toggleCleaning()
-                } label: {
-                    Image(systemName: "stop.fill")
+                if isShowingUnlockConfirmation {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
+                    
+                    Text("Keyboard Unlocked")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
+                        .lineLimit(1)
+                        
+                    Spacer(minLength: 0)
+                } else {
+                    Image(systemName: "keyboard.macwindow")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
+                    
+                    Text("Clean Keyboard")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
+                        .lineLimit(1)
+                    
+                    Spacer(minLength: 0)
+                    
+                    Button {
+                        self.toggleCleaning()
+                    } label: {
+                        Image(systemName: "stop.fill")
+                    }
+                    .buttonStyle(DroppyLiveActivityControlStyle(prominence: .accent))
+                    .help("Stop Cleaning")
                 }
-                .buttonStyle(DroppyLiveActivityControlStyle(prominence: .accent))
-                .help("Stop Cleaning")
             }
             .padding(.horizontal, DroppySpacing.md)
             .frame(width: context.availableWidth, height: DroppyLiveActivityMetrics.cardContentHeight)
@@ -295,7 +329,7 @@ extension CleankeyboardDroplet: LiveActivityProviding {
 
     public func makeCompanionCompact(context: CompactLiveActivityContext) -> AnyView {
         AnyView(
-            Image(systemName: "keyboard.macwindow")
+            Image(systemName: isShowingUnlockConfirmation ? "checkmark.circle.fill" : "keyboard.macwindow")
                 .font(.system(size: DroppyLiveActivityMetrics.iconSize, weight: .medium))
                 .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
         )
