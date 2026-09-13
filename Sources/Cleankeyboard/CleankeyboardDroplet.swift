@@ -148,7 +148,7 @@ public final class CleankeyboardDroplet: NSObject, ObservableObject, Droplet {
                 LiveActivityState(
                     priority: 200,
                     accessibilityTitle: "Keyboard Locked",
-                    isInteractive: true
+                    isInteractive: false
                 )
             )
         } else {
@@ -251,71 +251,43 @@ extension CleankeyboardDroplet: LiveActivityProviding {
 
     public func makeCompactLeading() -> AnyView {
         AnyView(
-            HStack {
-                Image(systemName: "keyboard.macwindow")
-                    .font(.system(size: DroppyLiveActivityMetrics.iconSize, weight: .medium))
-                    .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
-                    .padding(.trailing, DroppySpacing.sm)
-                Spacer(minLength: 0)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Image(systemName: "keyboard.macwindow")
+                .font(.system(size: DroppyLiveActivityMetrics.iconSize, weight: .medium))
+                .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
         )
     }
 
     public func makeCompactTrailing() -> AnyView {
         AnyView(
-            HStack {
-                Spacer(minLength: 0)
-                Button { 
-                    self.toggleCleaning() 
-                } label: { 
-                    Image(systemName: "xmark") 
-                }
-                .buttonStyle(DroppyLiveActivityControlStyle(prominence: .accent))
-            }
-            .frame(maxWidth: .infinity, alignment: .trailing)
+            Image(systemName: "lock.fill")
+                .font(.system(size: DroppyLiveActivityMetrics.iconSize, weight: .medium))
+                .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
         )
     }
 
     public func makeExpanded(context: LiveActivityContext) -> AnyView {
         AnyView(
-            ZStack {
-                if let path = Bundle.module.path(forResource: "Keyboard", ofType: "png"),
-                   let nsImage = NSImage(contentsOfFile: path) {
-                    Image(nsImage: nsImage)
-                        .resizable()
-                        .scaledToFill()
-                        .opacity(0.8)
-                }
+            HStack(spacing: DroppySpacing.sm) {
+                Image(systemName: "keyboard.macwindow")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
                 
-                Color.black.opacity(0.2) // Darken to make text legible
-                    
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack {
-                            Image(systemName: "keyboard.macwindow")
-                                .font(.system(size: 14, weight: .medium))
-                            Text("Clean Keyboard")
-                                .font(.system(size: 14, weight: .semibold))
-                        }
-                    }
-                    .foregroundStyle(.white)
-                    
-                    Spacer(minLength: DroppySpacing.mdl)
-                    
-                    Button {
-                        self.toggleCleaning()
-                    } label: {
-                        Text(self.isCleaning ? "Stop" : "Start")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(self.isCleaning ? Color.red : Color.blue)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 4)
-                    }
-                    .buttonStyle(DroppyGlassButtonStyle())
+                Text("Clean Keyboard")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
+                    .lineLimit(1)
+                
+                Spacer(minLength: 0)
+                
+                Button {
+                    self.toggleCleaning()
+                } label: {
+                    Image(systemName: "stop.fill")
                 }
-                .padding(.horizontal, DroppySpacing.md)
+                .buttonStyle(DroppyLiveActivityControlStyle(prominence: .accent))
+                .help("Stop Cleaning")
             }
+            .padding(.horizontal, DroppySpacing.md)
             .frame(width: context.availableWidth, height: DroppyLiveActivityMetrics.cardContentHeight)
             .clipped()
         )
