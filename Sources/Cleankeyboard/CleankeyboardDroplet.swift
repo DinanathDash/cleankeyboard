@@ -289,36 +289,32 @@ extension CleankeyboardDroplet: LiveActivityProviding {
     public func makeExpanded(context: LiveActivityContext) -> AnyView {
         AnyView(
             HStack(spacing: DroppySpacing.sm) {
-                if isShowingUnlockConfirmation {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
-                    
-                    Text("Keyboard Unlocked")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
-                        .lineLimit(1)
-                        
-                    Spacer(minLength: 0)
-                } else {
-                    Image(systemName: "keyboard.macwindow")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
-                    
-                    Text("Clean Keyboard")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
-                        .lineLimit(1)
-                    
-                    Spacer(minLength: 0)
-                    
+                Image(systemName: isShowingUnlockConfirmation ? "checkmark.circle.fill" : "keyboard.macwindow")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
+                    .id(isShowingUnlockConfirmation)
+                    .transition(DroppyTransition.element)
+                
+                Text(isShowingUnlockConfirmation ? "Keyboard Unlocked" : "Clean Keyboard")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
+                    .lineLimit(1)
+                    .id(isShowingUnlockConfirmation)
+                    .transition(DroppyTransition.element)
+                
+                Spacer(minLength: 0)
+                
+                if !isShowingUnlockConfirmation {
                     Button {
-                        self.toggleCleaning()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            self.toggleCleaning()
+                        }
                     } label: {
                         Image(systemName: "stop.fill")
                     }
                     .buttonStyle(DroppyLiveActivityControlStyle(prominence: .accent))
                     .help("Stop Cleaning")
+                    .transition(DroppyTransition.element)
                 }
             }
             .padding(.horizontal, DroppySpacing.md)
