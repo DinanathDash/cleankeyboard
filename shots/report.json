@@ -5,7 +5,7 @@
   },
   "activity" : [
     {
-      "at" : "2026-09-13T08:14:41Z",
+      "at" : "2026-09-13T19:13:45Z",
       "detail" : "register \"toggle\"",
       "refused" : false,
       "service" : "shortcuts"
@@ -33,7 +33,7 @@
     "id" : "cleankeyboard",
     "kit" : {
       "abi" : 1,
-      "minAPI" : "1.7.0"
+      "minAPI" : "1.8.0"
     },
     "minAppVersion" : "15.3.0",
     "name" : "Clean Keyboard",
@@ -41,18 +41,17 @@
     "surfaces" : [
       "shelf-widget",
       "live-activity",
-      "settings-pane",
-      "menu-bar-extra"
+      "settings-pane"
     ],
     "typeID" : "cleankeyboard",
-    "version" : "1.0.6"
+    "version" : "1.0.1"
   },
   "expandedSurfaces" : [
 
   ],
   "harness" : {
     "abi" : 1,
-    "apiVersion" : "1.7.0"
+    "apiVersion" : "1.8.0"
   },
   "liveActivity" : {
     "publishing" : false,
@@ -63,7 +62,7 @@
   },
   "log" : [
     {
-      "at" : "2026-09-13T08:14:41Z",
+      "at" : "2026-09-13T19:13:45Z",
       "level" : "info",
       "message" : "Clean Keyboard activated"
     }
@@ -138,10 +137,10 @@
       "verdict" : "not-provided"
     },
     {
-      "declared" : true,
-      "implemented" : true,
+      "declared" : false,
+      "implemented" : false,
       "surface" : "menu-bar-extra",
-      "verdict" : "provided"
+      "verdict" : "not-provided"
     }
   ],
   "verdict" : "ok"
