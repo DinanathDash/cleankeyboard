@@ -188,24 +188,24 @@ private struct CleankeyboardWidget: View {
     let context: ShelfWidgetContext
 
     var body: some View {
-        Button {
-            droplet.toggleCleaning()
-        } label: {
-            VStack(alignment: .leading, spacing: DroppySpacing.sm) {
-                HStack(spacing: DroppySpacing.xsm) {
-                    Image(systemName: "keyboard")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white)
-                    Text("Clean Keyboard")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.white)
-                    Spacer(minLength: 0)
-                }
-                
+        VStack(alignment: .leading, spacing: DroppySpacing.sm) {
+            HStack(spacing: DroppySpacing.xsm) {
+                Image(systemName: "keyboard")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(.white)
+                Text("Clean Keyboard")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
                 Spacer(minLength: 0)
-                
-                HStack {
-                    Spacer(minLength: 0)
+            }
+            
+            Spacer(minLength: 0)
+            
+            HStack {
+                Spacer(minLength: 0)
+                Button {
+                    droplet.toggleCleaning()
+                } label: {
                     Text(droplet.isCleaning ? "Click to Stop" : "Click to Start")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundStyle(.white)
@@ -213,28 +213,28 @@ private struct CleankeyboardWidget: View {
                         .padding(.horizontal, 16)
                         .background(droplet.isCleaning ? Color.red : Color.blue)
                         .cornerRadius(8)
-                    Spacer(minLength: 0)
                 }
-                
+                .buttonStyle(.plain)
                 Spacer(minLength: 0)
             }
-            .padding(DroppySpacing.mdl)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background {
-                ZStack {
-                    if let path = Bundle.module.path(forResource: "Keyboard", ofType: "png"),
-                       let nsImage = NSImage(contentsOfFile: path) {
-                        Image(nsImage: nsImage)
-                            .resizable()
-                            .scaledToFill()
-                            .opacity(0.8)
-                    }
-                    Color.black.opacity(0.2)
-                }
-            }
-            .clipped()
+            
+            Spacer(minLength: 0)
         }
-        .buttonStyle(.plain)
+        .padding(DroppySpacing.mdl)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background {
+            ZStack {
+                if let path = Bundle.module.path(forResource: "Keyboard", ofType: "png"),
+                   let nsImage = NSImage(contentsOfFile: path) {
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .scaledToFill()
+                        .opacity(0.8)
+                }
+                Color.black.opacity(0.2)
+            }
+        }
+        .clipped()
     }
 }
 
