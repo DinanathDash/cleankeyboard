@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://gitlab.com/droppyformac1/droppykit.git",
       "state" : {
-        "revision" : "16f3ba287d97f9c6ded5cd25a2f63fde49fba290",
-        "version" : "1.8.0"
+        "revision" : "0c40ec111b01421af06d23158f46b75eea75d166",
+        "version" : "1.8.1"
       }
     }
   ],

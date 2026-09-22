@@ -35,6 +35,7 @@ public final class CleankeyboardDroplet: NSObject, ObservableObject, Droplet {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var assertionID: IOPMAssertionID = 0
+    private var notificationObservers: [NSObjectProtocol] = []
 
     public func activate(host: DropletHost) throws {
         self.host = host
@@ -113,7 +114,7 @@ public final class CleankeyboardDroplet: NSObject, ObservableObject, Droplet {
                 
                 if UserDefaults.standard.bool(forKey: "preventScreenSleep") {
                     let success = IOPMAssertionCreateWithName(
-                        kIOPMAssertionTypeNoDisplaySleep as CFString,
+                        kIOPMAssertionTypePreventUserIdleDisplaySleep as CFString,
                         UInt32(kIOPMAssertionLevelOn),
                         "Droppy Clean Keyboard" as CFString,
                         &assertionID
@@ -122,6 +123,26 @@ public final class CleankeyboardDroplet: NSObject, ObservableObject, Droplet {
                         host?.log.info("Failed to create power assertion to prevent display sleep.")
                     }
                 }
+                
+                let center = NSWorkspace.shared.notificationCenter
+                notificationObservers.append(center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
+                    Task { @MainActor in
+                        self?.host?.log.info("System is sleeping, automatically disabling Clean Keyboard.")
+                        self?.stopCleaning()
+                    }
+                })
+                notificationObservers.append(center.addObserver(forName: NSWorkspace.screensDidSleepNotification, object: nil, queue: .main) { [weak self] _ in
+                    Task { @MainActor in
+                        self?.host?.log.info("Screens slept, automatically disabling Clean Keyboard.")
+                        self?.stopCleaning()
+                    }
+                })
+                notificationObservers.append(DistributedNotificationCenter.default().addObserver(forName: Notification.Name("com.apple.screenIsLocked"), object: nil, queue: .main) { [weak self] _ in
+                    Task { @MainActor in
+                        self?.host?.log.info("Screen locked, automatically disabling Clean Keyboard.")
+                        self?.stopCleaning()
+                    }
+                })
                 
                 publishActivity()
             } else {
@@ -147,6 +168,12 @@ public final class CleankeyboardDroplet: NSObject, ObservableObject, Droplet {
             assertionID = 0
         }
         
+        for observer in notificationObservers {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+            DistributedNotificationCenter.default().removeObserver(observer)
+        }
+        notificationObservers.removeAll()
+        
         eventTap = nil
         runLoopSource = nil
         isCleaning = false
@@ -169,7 +196,10 @@ public final class CleankeyboardDroplet: NSObject, ObservableObject, Droplet {
                 LiveActivityState(
                     priority: 200,
                     accessibilityTitle: isCleaning ? "Keyboard Locked" : "Keyboard Unlocked",
-                    isInteractive: false
+                    isInteractive: false,
+                    joinsPersistentActivitySet: false,
+                    compactPresentation: nil,
+                    expandedWidgetID: "cleankeyboard"
                 )
             )
         } else {
@@ -227,15 +257,13 @@ private struct CleankeyboardWidget: View {
                 Button {
                     droplet.toggleCleaning()
                 } label: {
-                    Text(droplet.isCleaning ? "Click to Stop" : "Click to Start")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.white)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 16)
-                        .background(droplet.isCleaning ? Color.red : Color.blue)
-                        .cornerRadius(8)
+                    Text(droplet.isCleaning ? "Stop Cleaning" : "Start Cleaning")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(AdaptiveColors.primaryTextAuto)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(DroppyQuietButtonStyle())
                 Spacer(minLength: 0)
             }
             
@@ -243,19 +271,6 @@ private struct CleankeyboardWidget: View {
         }
         .padding(DroppySpacing.mdl)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background {
-            ZStack {
-                if let path = Bundle.module.path(forResource: "Keyboard", ofType: "png"),
-                   let nsImage = NSImage(contentsOfFile: path) {
-                    Image(nsImage: nsImage)
-                        .resizable()
-                        .scaledToFill()
-                        .opacity(0.8)
-                }
-                Color.black.opacity(0.2)
-            }
-        }
-        .clipped()
     }
 }
 
@@ -272,55 +287,26 @@ extension CleankeyboardDroplet: LiveActivityProviding {
 
     public func makeCompactLeading() -> AnyView {
         AnyView(
-            Image(systemName: "keyboard.macwindow")
+            Image(systemName: isShowingUnlockConfirmation ? "checkmark.circle.fill" : "keyboard.macwindow")
                 .font(.system(size: DroppyLiveActivityMetrics.iconSize, weight: .medium))
                 .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
+                .id(isShowingUnlockConfirmation)
+                .transition(DroppyTransition.compactContent)
         )
     }
 
     public func makeCompactTrailing() -> AnyView {
         AnyView(
-            Image(systemName: "lock.fill")
+            Image(systemName: isShowingUnlockConfirmation ? "lock.open.fill" : "lock.fill")
                 .font(.system(size: DroppyLiveActivityMetrics.iconSize, weight: .medium))
                 .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
+                .id(isShowingUnlockConfirmation)
+                .transition(DroppyTransition.compactContent)
         )
     }
 
     public func makeExpanded(context: LiveActivityContext) -> AnyView {
-        AnyView(
-            HStack(spacing: DroppySpacing.sm) {
-                Image(systemName: isShowingUnlockConfirmation ? "checkmark.circle.fill" : "keyboard.macwindow")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
-                    .id(isShowingUnlockConfirmation)
-                    .transition(DroppyTransition.element)
-                
-                Text(isShowingUnlockConfirmation ? "Keyboard Unlocked" : "Clean Keyboard")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(AdaptiveColors.notchSurfacePrimaryText)
-                    .lineLimit(1)
-                    .id(isShowingUnlockConfirmation)
-                    .transition(DroppyTransition.element)
-                
-                Spacer(minLength: 0)
-                
-                if !isShowingUnlockConfirmation {
-                    Button {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                            self.toggleCleaning()
-                        }
-                    } label: {
-                        Image(systemName: "stop.fill")
-                    }
-                    .buttonStyle(DroppyLiveActivityControlStyle(prominence: .accent))
-                    .help("Stop Cleaning")
-                    .transition(DroppyTransition.element)
-                }
-            }
-            .padding(.horizontal, DroppySpacing.md)
-            .frame(width: context.availableWidth, height: DroppyLiveActivityMetrics.cardContentHeight)
-            .clipped()
-        )
+        AnyView(EmptyView())
     }
 
     public func makeCompanionCompact(context: CompactLiveActivityContext) -> AnyView {
